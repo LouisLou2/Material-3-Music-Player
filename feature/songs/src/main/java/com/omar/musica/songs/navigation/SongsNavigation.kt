@@ -16,6 +16,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
 import androidx.navigation.navigation
+import com.omar.musica.audiosearch.navigation.navigateToAudioSearch
 import com.omar.musica.songs.ui.search.SearchScreen
 import com.omar.musica.songs.ui.SongsScreen
 import com.omar.musica.store.model.album.BasicAlbum
@@ -40,6 +41,7 @@ fun NavGraphBuilder.songsGraph(
     enableBackPress: MutableState<Boolean>,
     onNavigateToAlbum: (BasicAlbum) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToAudioSearch: () -> Unit = { navController.navigateToAudioSearch() },
     enterAnimationFactory:
         (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
     exitAnimationFactory:
@@ -81,7 +83,8 @@ fun NavGraphBuilder.songsGraph(
                         }
                     )
                 },
-                onSettingsClicked = onNavigateToSettings
+                onSettingsClicked = onNavigateToSettings,
+                onAudioSearchClicked = onNavigateToAudioSearch
             )
         }
 

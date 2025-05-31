@@ -64,6 +64,7 @@ dependencies {
     implementation(project(mapOf("path" to ":feature:settings")))
     implementation(project(mapOf("path" to ":feature:tageditor")))
     implementation(project(mapOf("path" to ":feature:widgets")))
+    implementation(project(mapOf("path" to ":feature:audiosearch")))
     api(libs.accompanist.permissions)
 
     testImplementation(libs.junit)
