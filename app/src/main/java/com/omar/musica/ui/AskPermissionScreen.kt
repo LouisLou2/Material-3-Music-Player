@@ -44,18 +44,18 @@ fun AskPermissionScreen(
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Permission needed to access your music library",
+            text = "需要访问音频文件权限来播放您的音乐",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         if (shouldShowRationale)
             Button(onClick = onRequestPermission) {
-                Text(text = "Grant permission")
+                Text(text = "授予权限")
             }
         else
             Button(onClick = onOpenSettings) {
-                Text(text = "Grant in Settings")
+                Text(text = "在设置中授权")
             }
     }
 
