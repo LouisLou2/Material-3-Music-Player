@@ -1,4 +1,3 @@
-
 plugins {
     id("com.omar.android.library")
     id("com.omar.android.hilt")
@@ -23,6 +22,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.gson.converter)
     implementation(libs.gson)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)

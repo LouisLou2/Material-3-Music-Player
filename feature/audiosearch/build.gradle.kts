@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":core:store"))
     implementation(project(":core:model"))
     implementation(project(":core:playback"))
+    implementation(project(":core:network"))
     
     // Standard Android dependencies
     implementation(libs.core.ktx)
