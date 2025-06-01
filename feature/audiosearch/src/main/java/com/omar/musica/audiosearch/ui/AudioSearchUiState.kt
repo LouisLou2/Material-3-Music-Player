@@ -18,38 +18,26 @@ enum class RecognitionStatus {
 }
 
 /**
- * 听歌识曲界面的UI状态
+ * 听歌识曲页面的UI状态
  * 
- * 这个类定义了界面需要显示的所有信息：
- * - 录制状态（是否在录音、是否完成等）
- * - 识别状态（是否在识别、识别结果等）
- * - 错误信息（权限问题、录制失败等）
- * - 是否有录制权限
+ * 包含录制状态、权限状态、识别结果等所有UI需要的信息
  */
 data class AudioSearchUiState(
-    /** 当前录制状态 */
+    // 录制相关状态
     val recordingStatus: RecordingStatus = RecordingStatus.IDLE,
-    
-    /** 当前识别状态 */
-    val recognitionStatus: RecognitionStatus = RecognitionStatus.IDLE,
-    
-    /** 错误消息，如果有错误则显示给用户 */
-    val errorMessage: String? = null,
-    
-    /** 是否有录制音频的权限 */
-    val hasRecordPermission: Boolean = false,
-    
-    /** 录制时长（秒） - 用于显示录制进度 */
     val recordingDurationSeconds: Int = 0,
     
-    /** 是否正在检查权限 */
+    // 权限相关状态  
+    val hasRecordPermission: Boolean = false,
     val isCheckingPermission: Boolean = false,
     
-    /** 识别到的歌曲信息 */
+    // 识别相关状态
+    val recognitionStatus: RecognitionStatus = RecognitionStatus.IDLE,
     val recognizedSong: RecognizedSong? = null,
+    val recognitionProgressText: String? = null,
     
-    /** 识别进度文本 */
-    val recognitionProgressText: String? = null
+    // 错误和消息
+    val errorMessage: String? = null
 ) {
     
     /**

@@ -71,11 +71,18 @@ fun SearchScreen(
     onBackPressed: () -> Unit,
     onNavigateToAlbum: (BasicAlbum) -> Unit,
     enableBackPress: Boolean = true,
+    initialQuery: String = "",
 ) {
     val state by searchViewModel.state.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.STARTED)
 
     val searchFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(initialQuery) {
+        if (initialQuery.isNotBlank()) {
+            searchViewModel.onSearchQueryChanged(initialQuery)
+        }
+    }
 
     SearchScreen(
         modifier = modifier,

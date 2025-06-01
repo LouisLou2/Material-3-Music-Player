@@ -2,6 +2,7 @@ package com.omar.musica.audiosearch.ui;
 
 import android.content.Context;
 import com.omar.musica.audiosearch.data.recorder.AudioRecorder;
+import com.omar.musica.network.data.AudioRecognitionSource;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -28,23 +29,29 @@ public final class AudioSearchViewModel_Factory implements Factory<AudioSearchVi
 
   private final Provider<AudioRecorder> audioRecorderProvider;
 
+  private final Provider<AudioRecognitionSource> audioRecognitionSourceProvider;
+
   public AudioSearchViewModel_Factory(Provider<Context> contextProvider,
-      Provider<AudioRecorder> audioRecorderProvider) {
+      Provider<AudioRecorder> audioRecorderProvider,
+      Provider<AudioRecognitionSource> audioRecognitionSourceProvider) {
     this.contextProvider = contextProvider;
     this.audioRecorderProvider = audioRecorderProvider;
+    this.audioRecognitionSourceProvider = audioRecognitionSourceProvider;
   }
 
   @Override
   public AudioSearchViewModel get() {
-    return newInstance(contextProvider.get(), audioRecorderProvider.get());
+    return newInstance(contextProvider.get(), audioRecorderProvider.get(), audioRecognitionSourceProvider.get());
   }
 
   public static AudioSearchViewModel_Factory create(Provider<Context> contextProvider,
-      Provider<AudioRecorder> audioRecorderProvider) {
-    return new AudioSearchViewModel_Factory(contextProvider, audioRecorderProvider);
+      Provider<AudioRecorder> audioRecorderProvider,
+      Provider<AudioRecognitionSource> audioRecognitionSourceProvider) {
+    return new AudioSearchViewModel_Factory(contextProvider, audioRecorderProvider, audioRecognitionSourceProvider);
   }
 
-  public static AudioSearchViewModel newInstance(Context context, AudioRecorder audioRecorder) {
-    return new AudioSearchViewModel(context, audioRecorder);
+  public static AudioSearchViewModel newInstance(Context context, AudioRecorder audioRecorder,
+      AudioRecognitionSource audioRecognitionSource) {
+    return new AudioSearchViewModel(context, audioRecorder, audioRecognitionSource);
   }
 }

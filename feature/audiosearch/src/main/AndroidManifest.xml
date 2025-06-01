@@ -4,4 +4,12 @@
     <!-- 录音权限 - 用于录制用户的音频输入 -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     
+    <!-- 麦克风硬件功能要求 -->
+    <uses-feature 
+        android:name="android.hardware.microphone"
+        android:required="true" />
+    
+    <!-- 音频设置修改权限（某些设备需要） -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    
 </manifest> 

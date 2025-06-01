@@ -25,6 +25,7 @@ import com.omar.musica.store.model.album.BasicAlbum
 const val SONGS_NAVIGATION_GRAPH = "songs_graph"
 const val SONGS_ROUTE = "songs_route"
 const val SEARCH_ROUTE = "search_route"
+const val SEARCH_ROUTE_WITH_QUERY = "search_route?query={query}"
 
 
 fun NavController.navigateToSongs(navOptions: NavOptions? = null) {
@@ -35,6 +36,10 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
     navigate(SEARCH_ROUTE, navOptions)
 }
 
+fun NavController.navigateToSearchWithQuery(query: String, navOptions: NavOptions? = null) {
+    navigate("search_route?query=${java.net.URLEncoder.encode(query, "UTF-8")}", navOptions)
+}
+
 fun NavGraphBuilder.songsGraph(
     contentModifier: MutableState<Modifier>,
     navController: NavController,
@@ -42,6 +47,9 @@ fun NavGraphBuilder.songsGraph(
     onNavigateToAlbum: (BasicAlbum) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToAudioSearch: () -> Unit = { navController.navigateToAudioSearch() },
+    onNavigateToSearchWithQuery: (String) -> Unit = { query -> 
+        navController.navigateToSearchWithQuery(query)
+    },
     enterAnimationFactory:
         (String, AnimatedContentTransitionScope<NavBackStackEntry>) -> EnterTransition,
     exitAnimationFactory:
@@ -89,7 +97,7 @@ fun NavGraphBuilder.songsGraph(
         }
 
         composable(
-            SEARCH_ROUTE,
+            SEARCH_ROUTE_WITH_QUERY,
             enterTransition = {
                 fadeIn(tween(200)) +
                         slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up,
@@ -107,11 +115,13 @@ fun NavGraphBuilder.songsGraph(
             }
         )
         {
+            val query = it.arguments?.getString("query") ?: ""
             SearchScreen(
                 modifier = contentModifier.value,
                 onBackPressed = navController::popBackStack,
                 onNavigateToAlbum = onNavigateToAlbum,
-                enableBackPress = enableBackPress.value
+                enableBackPress = enableBackPress.value,
+                initialQuery = query
             )
         }
     }

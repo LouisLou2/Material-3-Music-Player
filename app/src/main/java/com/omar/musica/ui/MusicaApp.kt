@@ -42,6 +42,7 @@ import com.omar.musica.playlists.navigation.playlistsGraph
 import com.omar.musica.settings.navigation.settingsGraph
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.songsGraph
+import com.omar.musica.songs.navigation.navigateToSearchWithQuery
 import com.omar.musica.state.rememberMusicaAppState
 import com.omar.musica.tageditor.navigation.tagEditorGraph
 import com.omar.musica.ui.compact.CompactAppScaffold
@@ -110,6 +111,9 @@ fun MusicaApp2(
                             TopLevelDestination.SETTINGS
                         )
                     },
+                    onNavigateToSearchWithQuery = { query ->
+                        navController.navigateToSearchWithQuery(query)
+                    },
                     enterAnimationFactory = ::getEnterAnimationForRoute,
                     exitAnimationFactory = ::getExitAnimationForRoute,
                     popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
@@ -150,7 +154,10 @@ fun MusicaApp2(
                 )
                 audioSearchGraph(
                     contentModifier = contentModifier,
-                    navController = navController
+                    navController = navController,
+                    onNavigateToSearch = { query ->
+                        navController.navigateToSearchWithQuery(query)
+                    }
                 )
             }
         }

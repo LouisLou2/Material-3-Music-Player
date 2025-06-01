@@ -24,14 +24,17 @@ fun NavController.navigateToAudioSearch() {
  * 
  * @param contentModifier 内容修饰符，用于统一的界面样式
  * @param navController 导航控制器
+ * @param onNavigateToSearch 导航到搜索页面的回调，参数为搜索查询字符串
  */
 fun NavGraphBuilder.audioSearchGraph(
     contentModifier: MutableState<Modifier>,
-    navController: NavController
+    navController: NavController,
+    onNavigateToSearch: (String) -> Unit = {}
 ) {
     composable(route = AUDIO_SEARCH_ROUTE) {
         AudioSearchScreen(
-            modifier = contentModifier.value
+            modifier = contentModifier.value,
+            onNavigateToSearch = onNavigateToSearch
         )
     }
 } 
