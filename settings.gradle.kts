@@ -4,6 +4,8 @@ include(":feature:widgets")
 
 
 include(":feature:albums")
+include(":feature:artists")
+include(":feature:folders")
 
 
 include(":core:network")

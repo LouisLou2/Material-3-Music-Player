@@ -2,17 +2,23 @@ package com.omar.musica.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Album
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.omar.musica.playlists.navigation.PLAYLISTS_NAVIGATION_GRAPH
 import com.omar.musica.settings.navigation.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.albums.navigation.ALBUMS_NAVIGATION_GRAPH
+import com.omar.musica.artists.navigation.ARTISTS_NAVIGATION_GRAPH
+import com.omar.musica.folders.navigation.FOLDERS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 
 enum class TopLevelDestination(
@@ -42,6 +48,22 @@ enum class TopLevelDestination(
         Icons.Outlined.Album,
         "Albums",
         ALBUMS_NAVIGATION_GRAPH
+    ),
+
+
+    ARTISTS(
+        Icons.Rounded.Person,
+        Icons.Outlined.Person,
+        "Artists",
+        ARTISTS_NAVIGATION_GRAPH
+    ),
+
+
+    FOLDERS(
+        Icons.Rounded.Folder,
+        Icons.Outlined.Folder,
+        "Folders",
+        FOLDERS_NAVIGATION_GRAPH
     ),
 
 

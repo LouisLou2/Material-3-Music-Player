@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.timber)
     implementation(project(mapOf("path" to ":feature:songs")))
     implementation(project(":feature:albums"))
+    implementation(project(":feature:artists"))
+    implementation(project(":feature:folders"))
     implementation(project(mapOf("path" to ":core:ui")))
     implementation(project(mapOf("path" to ":core:store")))
     implementation(project(mapOf("path" to ":core:model")))

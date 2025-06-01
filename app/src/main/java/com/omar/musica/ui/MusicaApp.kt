@@ -34,7 +34,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.omar.musica.albums.navigation.albumsGraph
 import com.omar.musica.albums.navigation.navigateToAlbumDetail
+import com.omar.musica.artists.navigation.artistsGraph
+import com.omar.musica.artists.navigation.navigateToArtistDetail
 import com.omar.musica.audiosearch.navigation.audioSearchGraph
+import com.omar.musica.folders.navigation.foldersGraph
+import com.omar.musica.folders.navigation.navigateToFolderDetail
 import com.omar.musica.navigation.TopLevelDestination
 import com.omar.musica.navigation.navigateToTopLevelDestination
 import com.omar.musica.playback.PlaybackService
@@ -56,6 +60,8 @@ val topLevelDestinations =
         TopLevelDestination.SONGS,
         TopLevelDestination.PLAYLISTS,
         TopLevelDestination.ALBUMS,
+        TopLevelDestination.ARTISTS,
+        TopLevelDestination.FOLDERS,
         //TopLevelDestination.SETTINGS
     )
 
@@ -130,6 +136,24 @@ fun MusicaApp2(
                 albumsGraph(
                     contentModifier = contentModifier,
                     navController,
+                    enableBackPress = mutableStateOf(false),
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
+                )
+                artistsGraph(
+                    contentModifier = contentModifier,
+                    navController,
+                    enableBackPress = mutableStateOf(false),
+                    enterAnimationFactory = ::getEnterAnimationForRoute,
+                    exitAnimationFactory = ::getExitAnimationForRoute,
+                    popEnterAnimationFactory = ::getPopEnterAnimationForRoute,
+                    popExitAnimationFactory = ::getPopExitAnimationForRoute
+                )
+                foldersGraph(
+                    contentModifier = contentModifier,
+                    navController = navController,
                     enableBackPress = mutableStateOf(false),
                     enterAnimationFactory = ::getEnterAnimationForRoute,
                     exitAnimationFactory = ::getExitAnimationForRoute,

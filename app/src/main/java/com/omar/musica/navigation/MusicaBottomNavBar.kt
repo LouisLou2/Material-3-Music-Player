@@ -15,6 +15,8 @@ import androidx.navigation.navOptions
 import com.omar.musica.settings.navigation.SETTINGS_NAVIGATION_GRAPH
 import com.omar.musica.playlists.navigation.PLAYLISTS_NAVIGATION_GRAPH
 import com.omar.musica.albums.navigation.ALBUMS_NAVIGATION_GRAPH
+import com.omar.musica.artists.navigation.ARTISTS_NAVIGATION_GRAPH
+import com.omar.musica.folders.navigation.FOLDERS_NAVIGATION_GRAPH
 import com.omar.musica.songs.navigation.SONGS_NAVIGATION_GRAPH
 
 
@@ -75,6 +77,8 @@ fun NavHostController.navigateToTopLevelDestination(topLevelDestination: TopLeve
         TopLevelDestination.PLAYLISTS -> navigate(PLAYLISTS_NAVIGATION_GRAPH, navOptions)
         TopLevelDestination.SETTINGS -> navigate(SETTINGS_NAVIGATION_GRAPH, navOptions)
         TopLevelDestination.ALBUMS -> navigate(ALBUMS_NAVIGATION_GRAPH, navOptions)
+        TopLevelDestination.ARTISTS -> navigate(ARTISTS_NAVIGATION_GRAPH, navOptions)
+        TopLevelDestination.FOLDERS -> navigate(FOLDERS_NAVIGATION_GRAPH, navOptions)
     }
 }
 
