@@ -230,52 +230,25 @@ class MediaRepository @Inject constructor(
 
     suspend fun getSongPath(uri: Uri): String = withContext(Dispatchers.IO) {
 
-        Timber.d("获取歌曲路径，URI: $uri")
-        Timber.d("URI lastPathSegment: ${uri.lastPathSegment}")
-        
-        val songId = uri.lastPathSegment ?: throw IllegalArgumentException("URI无效，无法提取歌曲ID: $uri")
-        
-        val projection = arrayOf(MediaStore.Audio.Media.DATA)
-        val selection = "${MediaStore.Audio.Media._ID} = ?"
-        val selectionArgs = arrayOf(songId)
-
-        Timber.d("查询参数 - selection: $selection, args: ${selectionArgs.contentToString()}")
+        val projection =
+            arrayOf(
+                MediaStore.Audio.Media.DATA,
+            )
+        val selection = "${MediaStore.Audio.Media._ID} = ${uri.lastPathSegment!!}"
 
         val cursor = context.contentResolver.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             projection,
             selection,
-            selectionArgs,
+            null,
+            null,
             null
-        ) ?: throw Exception("无法查询媒体库，cursor为null")
+        ) ?: throw Exception("Invalid cursor")
 
         cursor.use {
-            if (!it.moveToFirst()) {
-                Timber.e("未找到ID为 $songId 的歌曲记录")
-                throw FileNotFoundException("媒体库中未找到对应的歌曲记录，ID: $songId")
-            }
-            
+            it.moveToFirst()
             val pathColumn = it.getColumnIndex(MediaStore.Audio.Media.DATA)
-            if (pathColumn == -1) {
-                throw Exception("无法获取文件路径列")
-            }
-            
-            val filePath = it.getString(pathColumn)
-            if (filePath.isNullOrEmpty()) {
-                Timber.e("歌曲记录中的文件路径为空，ID: $songId")
-                throw FileNotFoundException("歌曲记录中的文件路径为空")
-            }
-            
-            Timber.d("获取到文件路径: $filePath")
-            
-            // 验证文件是否存在
-            val file = File(filePath)
-            if (!file.exists()) {
-                Timber.w("文件路径存在但文件不存在: $filePath")
-                // 不抛出异常，让调用方处理，因为可能是存储设备没有挂载等临时问题
-            }
-            
-            return@withContext filePath
+            return@withContext it.getString(pathColumn)
         }
     }
 
