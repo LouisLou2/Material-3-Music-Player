@@ -81,7 +81,7 @@ class AudioSearchViewModel @Inject constructor(
         
         // 检查权限
         if (!_uiState.value.hasRecordPermission) {
-            updateErrorMessage("需要录音权限才能使用此功能")
+            updateErrorMessage("Microphone permission is required")
             return
         }
         
@@ -107,7 +107,7 @@ class AudioSearchViewModel @Inject constructor(
             
         } catch (e: Exception) {
             Timber.e(e, "开始录音失败")
-            updateErrorMessage("开始录音失败: ${e.message}")
+            updateErrorMessage("Failed to start recording: ${e.message}")
         }
     }
     
@@ -139,7 +139,7 @@ class AudioSearchViewModel @Inject constructor(
             // 检查录制时长
             val durationSeconds = _uiState.value.recordingDurationSeconds
             if (durationSeconds < AudioSearchConfig.MIN_RECORDING_DURATION_SECONDS) {
-                updateErrorMessage("录制时间过短，至少需要${AudioSearchConfig.MIN_RECORDING_DURATION_SECONDS}秒")
+                updateErrorMessage("Recording too short, minimum ${AudioSearchConfig.MIN_RECORDING_DURATION_SECONDS} seconds required")
                 return
             }
             
@@ -162,12 +162,12 @@ class AudioSearchViewModel @Inject constructor(
                     Timber.w("保存录制文件失败")
                 }
             } else {
-                updateErrorMessage("录制的音频数据为空，可能是音频录制失败")
+                updateErrorMessage("Recording failed: no audio data captured")
             }
             
         } catch (e: Exception) {
             Timber.e(e, "停止录音失败")
-            updateErrorMessage("停止录音失败: ${e.message}")
+            updateErrorMessage("Failed to stop recording: ${e.message}")
         }
     }
     
@@ -179,7 +179,7 @@ class AudioSearchViewModel @Inject constructor(
         
         // 检查API配置
         if (!AudioSearchConfig.isApiKeyConfigured()) {
-            updateErrorMessage("API密钥未配置，请在 AudioSearchConfig 中设置你的 ACRCloud 密钥")
+            updateErrorMessage("API key not configured. Please set your ACRCloud keys in AudioSearchConfig")
             return
         }
         
@@ -189,7 +189,7 @@ class AudioSearchViewModel @Inject constructor(
         // 更新UI状态为识别中
         _uiState.value = _uiState.value.copy(
             recognitionStatus = RecognitionStatus.RECOGNIZING,
-            recognitionProgressText = "正在识别歌曲..."
+            recognitionProgressText = "Identifying song..."
         )
         
         recognitionJob = viewModelScope.launch {
@@ -197,14 +197,14 @@ class AudioSearchViewModel @Inject constructor(
                 // 创建临时音频文件
                 val audioFile = createTempAudioFile()
                 if (audioFile == null) {
-                    updateErrorMessage("创建临时音频文件失败")
+                    updateErrorMessage("Failed to create audio file")
                     updateRecognitionStatus(RecognitionStatus.FAILED)
                     return@launch
                 }
                 
                 // 更新进度
                 _uiState.value = _uiState.value.copy(
-                    recognitionProgressText = "正在发送到识别服务..."
+                    recognitionProgressText = "Connecting to recognition service..."
                 )
                 
                 // 调用识别API
@@ -228,7 +228,6 @@ class AudioSearchViewModel @Inject constructor(
                 } else {
                     // 没有找到匹配的歌曲
                     updateRecognitionStatus(RecognitionStatus.FAILED)
-                    updateErrorMessage("没有找到匹配的歌曲，请尝试更清晰的录音")
                 }
                 
                 // 清理临时文件
@@ -237,15 +236,14 @@ class AudioSearchViewModel @Inject constructor(
             } catch (e: NotFoundException) {
                 Timber.w("识别失败：没有找到匹配的歌曲")
                 updateRecognitionStatus(RecognitionStatus.FAILED)
-                updateErrorMessage("没有找到匹配的歌曲，请尝试更清晰的录音")
             } catch (e: NetworkErrorException) {
                 Timber.e(e, "识别失败：网络错误")
                 updateRecognitionStatus(RecognitionStatus.FAILED)
-                updateErrorMessage("识别失败：${e.message}")
+                updateErrorMessage("Recognition failed: ${e.message}")
             } catch (e: Exception) {
                 Timber.e(e, "识别失败：未知错误")
                 updateRecognitionStatus(RecognitionStatus.FAILED)
-                updateErrorMessage("识别失败：${e.message ?: "未知错误"}")
+                updateErrorMessage("Recognition failed: ${e.message ?: "Unknown error"}")
             }
         }
     }
@@ -396,7 +394,7 @@ class AudioSearchViewModel @Inject constructor(
         if (_uiState.value.recordingStatus == RecordingStatus.COMPLETED) {
             startAudioRecognition()
         } else {
-            updateErrorMessage("请先录制音频")
+            updateErrorMessage("Please record audio first")
         }
     }
     
@@ -411,7 +409,7 @@ class AudioSearchViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             hasRecordPermission = granted,
             isCheckingPermission = false,
-            errorMessage = if (!granted) "需要录音权限才能使用听歌识曲功能" else null
+            errorMessage = if (!granted) "Microphone permission is required for audio search" else null
         )
     }
     
@@ -444,7 +442,7 @@ class AudioSearchViewModel @Inject constructor(
     private fun checkApiConfiguration() {
         if (!AudioSearchConfig.isApiKeyConfigured()) {
             Timber.w("ACRCloud API密钥未配置")
-            updateErrorMessage("请在 AudioSearchConfig 中配置你的 ACRCloud API 密钥")
+            updateErrorMessage("Please configure your ACRCloud API keys in AudioSearchConfig")
         } else {
             Timber.d("API密钥已配置: ${AudioSearchConfig.getMaskedApiKey()}")
         }
@@ -465,7 +463,7 @@ class AudioSearchViewModel @Inject constructor(
                 // 如果录制失败，停止计时器并显示错误
                 if (status == RecordingStatus.ERROR) {
                     stopDurationTimer()
-                    updateErrorMessage("录制过程中发生错误")
+                    updateErrorMessage("Recording error occurred")
                 }
             }
         }

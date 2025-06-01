@@ -29,14 +29,14 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 
 /**
- * 听歌识曲主界面
+ * Audio search main screen
  * 
- * 界面功能：
- * 1. 显示录音按钮（麦克风图标）
- * 2. 显示当前录制状态和时长
- * 3. 显示错误信息（如权限问题）
- * 4. 处理权限请求
- * 5. 音频诊断功能
+ * Features:
+ * 1. Recording button (microphone icon)
+ * 2. Current recording status and duration
+ * 3. Error messages (permission issues, etc.)
+ * 4. Permission request handling
+ * 5. Song recognition results
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,11 +45,11 @@ fun AudioSearchScreen(
     viewModel: AudioSearchViewModel = hiltViewModel(),
     onNavigateToSearch: (String) -> Unit = {}
 ) {
-    // 收集UI状态
+    // Collect UI state
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     
-    // 权限请求启动器
+    // Permission request launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -65,35 +65,15 @@ fun AudioSearchScreen(
         verticalArrangement = Arrangement.Center
     ) {
         
-        // 标题
-        Text(
-            text = "听歌识曲",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // 功能说明
-        Text(
-            text = "轻触麦克风按钮开始录音\n识别您听到的音乐",
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-        )
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        // 录制状态指示器
+        // Recording status indicator
         RecordingStatusIndicator(
             recordingStatus = uiState.recordingStatus,
             durationSeconds = uiState.recordingDurationSeconds
         )
         
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(64.dp))
         
-        // 主录音按钮
+        // Main recording button
         RecordButton(
             canStartRecording = uiState.canStartRecording,
             canStopRecording = uiState.canStopRecording,
@@ -105,53 +85,45 @@ fun AudioSearchScreen(
             }
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(48.dp))
         
-        // 识别状态和结果显示
+        // Recognition status and results
         RecognitionStatusSection(
             recognitionStatus = uiState.recognitionStatus,
             recognizedSong = uiState.recognizedSong,
             recognitionProgressText = uiState.recognitionProgressText,
             onRetryRecognition = { viewModel.retryRecognition() },
+            onRecordAgain = { viewModel.resetRecording() },
             onSearchLocally = onNavigateToSearch
         )
         
-        // 重置按钮（录制完成后显示）
-        if (uiState.recordingStatus == RecordingStatus.COMPLETED) {
-            OutlinedButton(
-                onClick = { viewModel.resetRecording() },
-                modifier = Modifier.fillMaxWidth(0.6f)
-            ) {
-                Text("重新录制")
+        // Error message display - avoid duplicate with recognition failed card
+        // Don't show errorMessage when recognition status is FAILED, as we have a dedicated card for that
+        if (uiState.recognitionStatus != RecognitionStatus.FAILED) {
+            uiState.errorMessage?.let { errorMessage ->
+                Spacer(modifier = Modifier.height(24.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = errorMessage,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        
-        // 错误信息显示 - 使用let操作符避免智能转换问题
-        uiState.errorMessage?.let { errorMessage ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Text(
-                    text = errorMessage,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    textAlign = TextAlign.Center
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 /**
- * 录制状态指示器
- * 显示当前的录制状态和时长
+ * Recording status indicator
+ * Shows current recording status and duration
  */
 @Composable
 private fun RecordingStatusIndicator(
@@ -161,12 +133,12 @@ private fun RecordingStatusIndicator(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 状态文字
+        // Status text
         val statusText = when (recordingStatus) {
-            RecordingStatus.IDLE -> "准备录音"
-            RecordingStatus.RECORDING -> "录音中..."
-            RecordingStatus.COMPLETED -> "录音完成"
-            RecordingStatus.ERROR -> "录音失败"
+            RecordingStatus.IDLE -> "Audio Search"
+            RecordingStatus.RECORDING -> "Listening..."
+            RecordingStatus.COMPLETED -> "Audio captured"
+            RecordingStatus.ERROR -> "Recording failed"
         }
         
         val statusColor = when (recordingStatus) {
@@ -178,28 +150,35 @@ private fun RecordingStatusIndicator(
         
         Text(
             text = statusText,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.SemiBold,
             color = statusColor
         )
         
-        // 录制时长（只在录音时显示）
+        // Recording duration (only shown while recording)
         if (recordingStatus == RecordingStatus.RECORDING) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = formatDuration(durationSeconds),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.primary
+            )
+        } else if (recordingStatus == RecordingStatus.IDLE) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Tap to identify music",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
     }
 }
 
 /**
- * 主录音按钮
- * 根据当前状态显示不同的按钮（录音/停止/请求权限）
- * 添加了动态效果：点击缩放动画和录音时的脉冲效果
+ * Main recording button
+ * Shows different buttons based on current state (record/stop/request permission)
+ * Added dynamic effects: press scale animation and pulse effect during recording
  */
 @Composable
 private fun RecordButton(
@@ -210,54 +189,54 @@ private fun RecordButton(
     onStopRecording: () -> Unit,
     onRequestPermission: () -> Unit
 ) {
-    val buttonSize = 120.dp
+    val buttonSize = 80.dp // Smaller, more elegant size
     
-    // 交互状态
+    // Interaction state
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
-    // 点击缩放动画
+    // Press scale animation
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
+        targetValue = if (isPressed) 0.9f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessMedium
         ),
         label = "button_scale"
     )
     
-    // 录音时的脉冲动画
+    // Pulse animation during recording
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_animation")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.1f,
+        targetValue = 1.15f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOut),
+            animation = tween(1200, easing = EaseInOut),
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulse_scale"
     )
     
-    // 录音时的外圈动画
+    // Outer ring animation during recording
     val outerRingAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
+        initialValue = 0.2f,
+        targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOut),
+            animation = tween(1200, easing = EaseInOut),
             repeatMode = RepeatMode.Reverse
         ),
         label = "outer_ring_alpha"
     )
     
     Box(
-        modifier = Modifier.size(buttonSize * 1.3f), // 给外圈留空间
+        modifier = Modifier.size(buttonSize * 1.4f), // Space for outer ring
         contentAlignment = Alignment.Center
     ) {
-        // 录音时的外圈效果
+        // Outer ring effect during recording
         if (canStopRecording) {
             Box(
                 modifier = Modifier
-                    .size(buttonSize * 1.2f)
+                    .size(buttonSize * 1.3f)
                     .scale(pulseScale)
                     .graphicsLayer {
                         alpha = outerRingAlpha
@@ -267,14 +246,14 @@ private fun RecordButton(
                     modifier = Modifier.fillMaxSize(),
                     shape = CircleShape,
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
                     )
                 ) {}
             }
         }
         
         when {
-            // 没有权限时显示请求权限按钮
+            // No permission - show permission request button
             !hasPermission -> {
                 FilledTonalButton(
                     onClick = onRequestPermission,
@@ -284,24 +263,15 @@ private fun RecordButton(
                     shape = CircleShape,
                     interactionSource = interactionSource
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Mic,
-                            contentDescription = "请求录音权限",
-                            modifier = Modifier.size(36.dp)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "允许录音",
-                            fontSize = 12.sp
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Grant microphone permission",
+                        modifier = Modifier.size(28.dp)
+                    )
                 }
             }
             
-            // 可以停止录音时显示停止按钮
+            // Can stop recording - show stop button
             canStopRecording -> {
                 FilledTonalButton(
                     onClick = onStopRecording,
@@ -316,14 +286,14 @@ private fun RecordButton(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Stop,
-                        contentDescription = "停止录音",
-                        modifier = Modifier.size(48.dp),
+                        contentDescription = "Stop recording",
+                        modifier = Modifier.size(32.dp),
                         tint = Color.White
                     )
                 }
             }
             
-            // 可以开始录音时显示录音按钮
+            // Can start recording - show record button
             canStartRecording -> {
                 FilledTonalButton(
                     onClick = onStartRecording,
@@ -338,14 +308,14 @@ private fun RecordButton(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Mic,
-                        contentDescription = "开始录音",
-                        modifier = Modifier.size(48.dp),
+                        contentDescription = "Start recording",
+                        modifier = Modifier.size(32.dp),
                         tint = Color.White
                     )
                 }
             }
             
-            // 其他状态显示禁用的按钮
+            // Other states - disabled button
             else -> {
                 FilledTonalButton(
                     onClick = { },
@@ -358,8 +328,8 @@ private fun RecordButton(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Mic,
-                        contentDescription = "录音按钮",
-                        modifier = Modifier.size(48.dp)
+                        contentDescription = "Recording button",
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
@@ -377,7 +347,7 @@ private fun formatDuration(seconds: Int): String {
 }
 
 /**
- * 识别状态和结果展示区域
+ * Recognition status and results section
  */
 @Composable
 private fun RecognitionStatusSection(
@@ -385,20 +355,21 @@ private fun RecognitionStatusSection(
     recognizedSong: com.omar.musica.audiosearch.model.RecognizedSong?,
     recognitionProgressText: String?,
     onRetryRecognition: () -> Unit,
+    onRecordAgain: () -> Unit,
     onSearchLocally: (String) -> Unit
 ) {
     when (recognitionStatus) {
         RecognitionStatus.IDLE -> {
-            // 空闲状态不显示任何内容
+            // Show nothing in idle state
         }
         
         RecognitionStatus.RECOGNIZING -> {
-            // 识别中状态
+            // Recognition in progress
             RecognitionInProgressCard(progressText = recognitionProgressText)
         }
         
         RecognitionStatus.SUCCESS -> {
-            // 识别成功状态
+            // Recognition successful
             recognizedSong?.let { song ->
                 RecognitionSuccessCard(
                     song = song,
@@ -409,40 +380,41 @@ private fun RecognitionStatusSection(
         }
         
         RecognitionStatus.FAILED -> {
-            // 识别失败状态
-            RecognitionFailedCard(onRetryRecognition = onRetryRecognition)
+            // Recognition failed
+            RecognitionFailedCard(onRecordAgain = onRecordAgain)
         }
     }
 }
 
 /**
- * 识别进行中的卡片
+ * Recognition in progress card
  */
 @Composable
 private fun RecognitionInProgressCard(progressText: String?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CircularProgressIndicator(
-                modifier = Modifier.size(48.dp),
-                color = MaterialTheme.colorScheme.primary
+                modifier = Modifier.size(40.dp),
+                color = MaterialTheme.colorScheme.primary,
+                strokeWidth = 3.dp
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = progressText ?: "正在识别音乐...",
+                text = progressText ?: "Identifying music...",
                 style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -450,7 +422,7 @@ private fun RecognitionInProgressCard(progressText: String?) {
 }
 
 /**
- * 识别成功的结果卡片
+ * Recognition success result card
  */
 @Composable
 private fun RecognitionSuccessCard(
@@ -461,7 +433,7 @@ private fun RecognitionSuccessCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Column(
@@ -469,88 +441,66 @@ private fun RecognitionSuccessCard(
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-            // 成功图标和标题
+            // Success header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "识别成功",
+                    contentDescription = "Match found",
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
                 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 
                 Text(
-                    text = "识别成功！",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    fontWeight = FontWeight.Bold
+                    text = "Song identified",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // 歌曲信息
+            // Song information
             SongInfoSection(song = song)
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // 操作按钮
+            // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 重新识别按钮
-                val retryInteractionSource = remember { MutableInteractionSource() }
-                val retryIsPressed by retryInteractionSource.collectIsPressedAsState()
-                val retryScale by animateFloatAsState(
-                    targetValue = if (retryIsPressed) 0.95f else 1f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                    label = "retry_button_scale"
-                )
-                
+                // Retry button
                 OutlinedButton(
                     onClick = onRetryRecognition,
-                    modifier = Modifier
-                        .weight(1f)
-                        .scale(retryScale),
-                    interactionSource = retryInteractionSource
+                    modifier = Modifier.weight(1f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("重试")
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Retry")
                 }
                 
-                // 本地搜索按钮
-                val searchInteractionSource = remember { MutableInteractionSource() }
-                val searchIsPressed by searchInteractionSource.collectIsPressedAsState()
-                val searchScale by animateFloatAsState(
-                    targetValue = if (searchIsPressed) 0.95f else 1f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                    label = "search_button_scale"
-                )
-                
+                // Search locally button
                 Button(
                     onClick = { onSearchLocally(song.title) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .scale(searchScale),
-                    interactionSource = searchInteractionSource
+                    modifier = Modifier.weight(1f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("本地搜索")
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Find Local")
                 }
             }
         }
@@ -558,105 +508,66 @@ private fun RecognitionSuccessCard(
 }
 
 /**
- * 歌曲信息展示区域
+ * Song information display section
  */
 @Composable
 private fun SongInfoSection(song: com.omar.musica.audiosearch.model.RecognizedSong) {
     Column {
-        // 歌曲标题
+        // Song title
         Text(
             text = song.title,
             style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
             fontWeight = FontWeight.Bold
         )
         
         Spacer(modifier = Modifier.height(4.dp))
         
-        // 艺术家
+        // Artist
         Text(
-            text = "演唱：${song.getArtistsString()}",
+            text = song.getArtistsString(),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
         )
         
-        // 专辑（如果有）
+        // Album (if available)
         song.album?.let { album ->
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "专辑：$album",
+                text = album,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
             )
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // 详细信息行
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 时长
-            song.durationMs?.let { duration ->
-                InfoChip(
-                    icon = Icons.Default.Schedule,
-                    text = song.getFormattedDuration()
-                )
-            }
-            
-            // 发布日期
-            song.releaseDate?.let { date ->
-                InfoChip(
-                    icon = Icons.Default.DateRange,
-                    text = date
-                )
-            }
-        }
-        
-        // 流派标签
-        song.genres?.takeIf { it.isNotEmpty() }?.let { genres ->
+        // Additional info row
+        song.durationMs?.let { duration ->
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "流派：${song.getGenresString()}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Schedule,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = song.getFormattedDuration(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                )
+            }
         }
     }
 }
 
 /**
- * 信息小标签
+ * Recognition failed card
  */
 @Composable
-private fun InfoChip(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-        )
-    }
-}
-
-/**
- * 识别失败的卡片
- */
-@Composable
-private fun RecognitionFailedCard(onRetryRecognition: () -> Unit) {
+private fun RecognitionFailedCard(onRecordAgain: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -671,15 +582,15 @@ private fun RecognitionFailedCard(onRetryRecognition: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Error,
-                contentDescription = "识别失败",
+                contentDescription = "No match found",
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(40.dp)
             )
             
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "未能识别此音乐",
+                text = "No match found",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer,
                 fontWeight = FontWeight.Medium
@@ -688,7 +599,7 @@ private fun RecognitionFailedCard(onRetryRecognition: () -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "请尝试在更安静的环境中录制更清晰的音乐片段",
+                text = "Try recording in a quieter environment or closer to the audio source",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
@@ -696,29 +607,19 @@ private fun RecognitionFailedCard(onRetryRecognition: () -> Unit) {
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            val failedRetryInteractionSource = remember { MutableInteractionSource() }
-            val failedRetryIsPressed by failedRetryInteractionSource.collectIsPressedAsState()
-            val failedRetryScale by animateFloatAsState(
-                targetValue = if (failedRetryIsPressed) 0.95f else 1f,
-                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-                label = "failed_retry_button_scale"
-            )
-            
             Button(
-                onClick = onRetryRecognition,
-                modifier = Modifier.scale(failedRetryScale),
+                onClick = onRecordAgain,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
-                ),
-                interactionSource = failedRetryInteractionSource
+                )
             ) {
                 Icon(
                     imageVector = Icons.Default.Refresh,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("重新识别")
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Record Again")
             }
         }
     }

@@ -130,7 +130,7 @@ internal fun SongsScreen(
                     title = { Text(text = "Songs", fontWeight = FontWeight.SemiBold) },
                     actions = {
                         IconButton(onAudioSearchClicked) {
-                            Icon(Icons.Rounded.Mic, contentDescription = "听歌识曲")
+                            Icon(Icons.Rounded.Mic, contentDescription = "Audio Search")
                         }
                         IconButton(onSearchClicked) {
                             Icon(Icons.Rounded.Search, contentDescription = null)
