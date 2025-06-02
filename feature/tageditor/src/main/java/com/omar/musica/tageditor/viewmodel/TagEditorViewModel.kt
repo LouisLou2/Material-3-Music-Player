@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
-import java.io.FileNotFoundException
 
 
 @HiltViewModel
@@ -44,54 +43,19 @@ class TagEditorViewModel @Inject constructor(
     fun saveTags(songTags: SongTags) {
         viewModelScope.launch {
             val currentState = state.value as TagEditorState.Loaded
-            _state.value = currentState.copy(isSaving = true, isSaved = false, errorMessage = null)
+            _state.value = currentState.copy(isSaving = true, isSaved = false)
             try {
-                Timber.d("开始保存标签: ${songUri}")
-                tagsRepository.editTags(songUri, songTags)
-                Timber.d("标签保存成功")
+                tagsRepository.editTags(songUri, songTags,)
                 _state.getAndUpdate {
                     if (it is TagEditorState.Loaded)
-                        it.copy(isSaved = true, isSaving = false, isFailed = false, errorMessage = null)
+                        it.copy(isSaved = true, isSaving = false, isFailed = false)
                     else
                         TagEditorState.Loading
                 }
             } catch (e: Exception) {
-                Timber.e(e, "标签保存失败")
-                
-                val errorMessage = when {
-                    e.message?.contains("URI无效") == true -> 
-                        "歌曲URI格式无效，无法定位文件。"
-                    e.message?.contains("媒体库中未找到") == true -> 
-                        "在媒体库中找不到该歌曲记录，可能歌曲已被删除。"
-                    e.message?.contains("文件路径为空") == true -> 
-                        "歌曲记录损坏，无法获取文件路径。"
-                    e.message?.contains("Field null is not of type") == true -> 
-                        "标签字段格式错误。某些标签信息可能包含无效字符。"
-                    e.message?.contains("AbstractID3v2Frame") == true || e.message?.contains("AggregatedFrame") == true -> 
-                        "ID3标签格式不兼容。建议清空有问题的字段后重试。"
-                    e::class.java.simpleName.contains("CannotReadException") -> 
-                        "无法读取音频文件。文件可能已损坏或格式不受支持。"
-                    e::class.java.simpleName.contains("CannotWriteException") -> 
-                        "无法写入音频文件。请检查文件权限。"
-                    e is SecurityException -> 
-                        "权限被拒绝。请授予存储访问权限。"
-                    e is FileNotFoundException -> 
-                        when {
-                            e.message?.contains("音频文件不存在") == true -> "音频文件不存在，可能已被移动或删除。"
-                            else -> "找不到音频文件。"
-                        }
-                    e is IllegalArgumentException -> 
-                        when {
-                            e.message?.contains("URI无效") == true -> "歌曲URI格式无效。"
-                            else -> "不支持的音频文件格式或文件已损坏。"
-                        }
-                    else -> 
-                        "保存失败: ${e.message ?: "未知错误"}"
-                }
-                
                 _state.getAndUpdate {
                     if (it is TagEditorState.Loaded)
-                        it.copy(isSaved = false, isSaving = false, isFailed = true, errorMessage = errorMessage)
+                        it.copy(isSaved = false, isSaving = false, isFailed = true)
                     else
                         TagEditorState.Loading
                 }

@@ -9,6 +9,5 @@ sealed interface TagEditorState {
         val isSaving: Boolean = false,
         val isSaved: Boolean = false,
         val isFailed: Boolean = false,
-        val errorMessage: String? = null,
     ) : TagEditorState
 }

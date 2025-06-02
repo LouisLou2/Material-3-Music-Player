@@ -74,12 +74,11 @@ fun TagEditorScreen(
         if (state is TagEditorState.Loaded) {
             val safeState = state as? TagEditorState.Loaded
             if (safeState?.isFailed == true) {
-                val errorMessage = safeState.errorMessage ?: "保存失败"
-                context.showShortToast(errorMessage)
+                context.showShortToast("Failed to update tags")
                 onClose()
             }
             if (safeState?.isSaved == true) {
-                context.showShortToast("标签更新成功")
+                context.showShortToast("Tags updated successfully")
                 onClose()
             }
         }
