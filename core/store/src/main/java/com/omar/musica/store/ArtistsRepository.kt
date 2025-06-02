@@ -28,10 +28,8 @@ class ArtistsRepository @Inject constructor(
 
             val songs = it.songs
 
-            // 关键改动：按歌手名分组而不是专辑名
-            val artistsNames = songs
-                .groupBy { song -> song.metadata.artistName }
-                .filter { entry -> entry.key != null }
+      // 关键改动：按歌手名分组而不是专辑名
+      val artistsNames = songs.groupBy { song -> song.metadata.artistName }.filter { entry -> entry.key != null }
 
             var counter = 1
             artistsNames.map { entry ->
@@ -68,21 +66,15 @@ class ArtistsRepository @Inject constructor(
     fun getArtistAlbums(artistName: String) =
         basicArtists.map { it.filter { artist -> artist.albumInfo.name == artistName } }
 
-    fun getArtistWithSongs(artistId: Int) =
-        artists.map { allArtists ->
-            allArtists
-                .firstOrNull { it.albumInfo.id == artistId }
-                .let {
-                    if (it == null) return@let it
-                    // sort the songs by track number or title
-                    val sortedSongs = it.songs.sortedBy { song -> song.song.metadata.title }
-                    it.copy(songs = sortedSongs)
-                }
+  fun getArtistWithSongs(artistId: Int) =
+    artists.map { allArtists ->
+      allArtists
+        .firstOrNull { it.albumInfo.id == artistId }
+        .let {
+          if (it == null) return@let it
+          // sort the songs by track number or title
+          val sortedSongs = it.songs.sortedBy { song -> song.song.metadata.title }
+          it.copy(songs = sortedSongs)
         }
-
-    fun getSongArtistId(song: Song): Int? {
-        val artist = artists.value.firstOrNull { it.songs.map { it.song }.any { it.uri == song.uri } }
-        val artistId = artist?.albumInfo?.id
-        return artistId
     }
-} 
+}

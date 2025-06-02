@@ -21,7 +21,7 @@ data class LibrarySettingsUi(
     val songsSortOrder: Pair<SongSortOption, IsAscending>,
 
     /**
-     * The order of the albums on the main screen
+     * The order of the songs on the main screen
      */
     val albumsSortOrder: Pair<AlbumsSortOption, IsAscending>,
 

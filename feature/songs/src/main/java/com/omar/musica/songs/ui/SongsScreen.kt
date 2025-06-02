@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Mic
+import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Divider
@@ -191,6 +192,105 @@ internal fun SongsScreen(
             }
 
 
+  Scaffold(
+    modifier = modifier,
+    topBar = {
+      SelectionTopAppBarScaffold(
+        modifier = Modifier.fillMaxWidth(),
+        multiSelectState = multiSelectState,
+        isMultiSelectEnabled = multiSelectEnabled,
+        actionItems = buildCommonMultipleSongsActions(
+          multiSelectState.selected,
+          context,
+          commonSongActions.playbackActions,
+          commonSongActions.addToPlaylistDialog,
+          commonSongActions.shareAction
+        ),
+        numberOfVisibleIcons = 2,
+        scrollBehavior = scrollBehavior
+      ) {
+        TopAppBar(
+          modifier = Modifier.fillMaxWidth(),
+          title = { Text(text = "Songs", fontWeight = FontWeight.SemiBold) },
+          actions = {
+            IconButton(onSearchClicked) {
+              Icon(Icons.Rounded.Search, contentDescription = null)
+            }
+            OverflowMenu(
+              actionItems = listOf(
+                MenuActionItem(
+                  Icons.Rounded.Settings,
+                  "Settings"
+                ) {
+                  onSettingsClicked()
+                }),
+              contentPaddingValues = PaddingValues(vertical = 16.dp, horizontal = 16.dp)
+            )
+          },
+          scrollBehavior = scrollBehavior
+        )
+      }
+    },
+  ) { paddingValues ->
+    val layoutDirection = LocalLayoutDirection.current
+    LazyColumn(
+      modifier = Modifier
+        .padding(
+          top = paddingValues.calculateTopPadding(),
+          end = paddingValues.calculateEndPadding(layoutDirection),
+          start = paddingValues.calculateStartPadding(layoutDirection)
+        )
+        .nestedScroll(scrollBehavior.nestedScrollConnection),
+    ) {
+      item {
+        HorizontalDivider()
+      }
+      item {
+        AnimatedVisibility(visible = !multiSelectEnabled) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            SongsSummary(
+              modifier = Modifier,
+              songs.count(),
+              songs.sumOf { it.metadata.durationMillis }
+            )
+            Spacer(Modifier.width(16.dp))
+//            SortChip(
+//              modifier = Modifier,
+//              songSortOptions = SongSortOption.entries,
+//              onSortOptionSelected = onSortOptionChanged,
+//              currentSongSortOption = uiState.songSortOption,
+//              isAscending = uiState.isSortedAscendingly
+//            )
+            IconButton(
+              modifier = Modifier.height(32.dp),
+              onClick = { sortOptionDropdownMenuShown = true }
+            ) {
+              Icon(imageVector = Icons.AutoMirrored.Rounded.Sort, contentDescription = "Sort")
+              SortOptionDropdownMenu(
+                visible = sortOptionDropdownMenuShown,
+                sortOption = librarySettings.songsSortOrder.first,
+                isAscending = librarySettings.songsSortOrder.second,
+                onChangeSortCriteria = {
+                  onSortOptionChanged(it, librarySettings.songsSortOrder.second) ;
+                  sortOptionDropdownMenuShown = false
+                },
+                onChangeAscending = {
+                  onSortOptionChanged(librarySettings.songsSortOrder.first, it)
+                },
+                onDismissRequest = {
+                  sortOptionDropdownMenuShown = false
+                },
+              )
+            }
+          }
+        }
+      }
 
             selectableSongsList(
                 songs,

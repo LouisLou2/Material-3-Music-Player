@@ -69,8 +69,8 @@ val topLevelDestinations =
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MusicaApp2(
-    modifier: Modifier,
-    navController: NavHostController
+  modifier: Modifier,
+  navController: NavHostController
 ) {
 
 
