@@ -15,56 +15,56 @@ import javax.inject.Inject
 
 
 class ArtistsRepository @Inject constructor(
-  val mediaRepository: MediaRepository
+    val mediaRepository: MediaRepository
 ) {
 
-  private val scope = CoroutineScope(Dispatchers.Default)
+    private val scope = CoroutineScope(Dispatchers.Default)
 
-  /**
-   * All the artists of the device alongside their songs
-   */
-  val artists: StateFlow<List<AlbumWithSongs>> = mediaRepository.songsFlow
-    .map {
+    /**
+     * All the artists of the device alongside their songs
+     */
+    val artists: StateFlow<List<AlbumWithSongs>> = mediaRepository.songsFlow
+        .map {
 
-      val songs = it.songs
+            val songs = it.songs
 
       // 关键改动：按歌手名分组而不是专辑名
       val artistsNames = songs.groupBy { song -> song.metadata.artistName }.filter { entry -> entry.key != null }
 
-      var counter = 1
-      artistsNames.map { entry ->
-        val firstSong = entry.value[0]
-        AlbumWithSongs(
-          BasicAlbumInfo(
-            counter++,
-            entry.key!!, // 歌手名
-            "", // artist字段留空，因为这里name就是歌手名
-            entry.value.size
-          ),
-          entry.value.map { AlbumSong(it, it.metadata.trackNumber) }
+            var counter = 1
+            artistsNames.map { entry ->
+                val firstSong = entry.value[0]
+                AlbumWithSongs(
+                    BasicAlbumInfo(
+                        counter++,
+                        entry.key!!, // 歌手名
+                        "", // artist字段留空，因为这里name就是歌手名
+                        entry.value.size
+                    ),
+                    entry.value.map { AlbumSong(it, it.metadata.trackNumber) }
+                )
+            }
+        }
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            listOf()
         )
-      }
-    }
-    .stateIn(
-      scope,
-      SharingStarted.Eagerly,
-      listOf()
-    )
 
-  /**
-   * Contains simplified information about all artists
-   * Used inside the Artists Screen
-   */
-  val basicArtists: StateFlow<List<BasicAlbum>> = artists
-    .map { artists -> artists.map { BasicAlbum(it.albumInfo, it.songs.firstOrNull()?.song) } }
-    .stateIn(
-      scope,
-      SharingStarted.Eagerly,
-      listOf()
-    )
+    /**
+     * Contains simplified information about all artists
+     * Used inside the Artists Screen
+     */
+    val basicArtists: StateFlow<List<BasicAlbum>> = artists
+        .map { artists -> artists.map { BasicAlbum(it.albumInfo, it.songs.firstOrNull()?.song) } }
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            listOf()
+        )
 
-  fun getArtistAlbums(artistName: String) =
-    basicArtists.map { it.filter { artist -> artist.albumInfo.name == artistName } }
+    fun getArtistAlbums(artistName: String) =
+        basicArtists.map { it.filter { artist -> artist.albumInfo.name == artistName } }
 
   fun getArtistWithSongs(artistId: Int) =
     artists.map { allArtists ->

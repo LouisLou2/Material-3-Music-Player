@@ -17,6 +17,7 @@ annotation class LyricsRetrofitService
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
 
+
     @Provides
     fun provideLyricsService(
         @LyricsRetrofitService lyricsRetrofitService: Retrofit

@@ -16,7 +16,6 @@
             </builds>
           </compositeBuild>
         </compositeConfiguration>
-        <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleJvm" value="17" />
         <option name="modules">
@@ -35,6 +34,7 @@
             <option value="$PROJECT_DIR$/feature" />
             <option value="$PROJECT_DIR$/feature/albums" />
             <option value="$PROJECT_DIR$/feature/artists" />
+            <option value="$PROJECT_DIR$/feature/audiosearch" />
             <option value="$PROJECT_DIR$/feature/nowplaying" />
             <option value="$PROJECT_DIR$/feature/playlists" />
             <option value="$PROJECT_DIR$/feature/settings" />
@@ -43,6 +43,7 @@
             <option value="$PROJECT_DIR$/feature/widgets" />
           </set>
         </option>
+        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
