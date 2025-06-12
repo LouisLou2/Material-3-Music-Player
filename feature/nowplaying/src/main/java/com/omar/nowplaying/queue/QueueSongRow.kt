@@ -97,8 +97,8 @@ fun QueueSongRow(
 
     DeleteBackground(
       modifier = Modifier.fillMaxSize(),
-      swipeProgress = { anchorState.requireOffset() / rowWidth })
-
+      swipeProgress = { anchorState.requireOffset() / rowWidth }
+    )
     Row(
       modifier = Modifier
         .fillMaxWidth()

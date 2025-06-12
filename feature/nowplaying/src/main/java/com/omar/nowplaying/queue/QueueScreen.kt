@@ -46,178 +46,172 @@ import sh.calvin.reorderable.rememberReorderableLazyColumnState
 
 @Composable
 fun QueueScreen(
-    modifier: Modifier,
-    onClose: () -> Unit,
-    viewModel: QueueViewModel = hiltViewModel()
+  modifier: Modifier,
+  onClose: () -> Unit,
+  viewModel: QueueViewModel = hiltViewModel()
 ) {
-    val state by viewModel.queueScreenState.collectAsState()
-    QueueScreen(
-        modifier = modifier,
-        state = state,
-        onClose = onClose,
-        onClearQueue = viewModel::onClearQueue,
-        onSongClicked = viewModel::onSongClicked,
-        onSaveAsPlaylist = viewModel::onSaveAsPlaylist,
-        onRemoveSongFromQueue = viewModel::onRemoveFromQueue,
-        reorderSong = viewModel::reorderSong
-    )
+  val state by viewModel.queueScreenState.collectAsState()
+  QueueScreen(
+    modifier = modifier,
+    state = state,
+    onClose = onClose,
+    onClearQueue = viewModel::onClearQueue,
+    onSongClicked = viewModel::onSongClicked,
+    onSaveAsPlaylist = viewModel::onSaveAsPlaylist,
+    onRemoveSongFromQueue = viewModel::onRemoveFromQueue,
+    reorderSong = viewModel::reorderSong
+  )
 }
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun QueueScreen(
-    modifier: Modifier,
-    state: QueueScreenState,
-    onClose: () -> Unit,
-    onClearQueue: () -> Unit,
-    onSongClicked: (Int) -> Unit,
-    onSaveAsPlaylist: (String) -> Unit,
-    onRemoveSongFromQueue: (Int) -> Unit,
-    reorderSong: (Int, Int) -> Unit,
+  modifier: Modifier,
+  state: QueueScreenState,
+  onClose: () -> Unit,
+  onClearQueue: () -> Unit,
+  onSongClicked: (Int) -> Unit,
+  onSaveAsPlaylist: (String) -> Unit,
+  onRemoveSongFromQueue: (Int) -> Unit,
+  reorderSong: (Int, Int) -> Unit,
 ) {
-    BackHandler(true) {
-        onClose()
-    }
-    val color = Color(0x22000000)
+  BackHandler(true) {
+    onClose()
+  }
+  val color = Color(0x22000000)
 
 
-    var fabShown by remember {
-        mutableStateOf(true)
+  var fabShown by remember {
+    mutableStateOf(true)
+  }
+  val nestedScrollConnection = remember {
+    object : NestedScrollConnection {
+      override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        if (available.y < -1.0f) fabShown = false
+        if (available.y > 1.0f) fabShown = true
+        return Offset.Zero
+      }
     }
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -1.0f) fabShown = false
-                if (available.y > 1.0f) fabShown = true
-                return Offset.Zero
-            }
+  }
+
+
+  val context = LocalContext.current
+
+  var showDialog by remember {
+    mutableStateOf(false)
+  }
+  if (showDialog)
+    InputStringDialog(
+      title = "Playlist Name",
+      isInputValid = { it.isNotBlank() },
+      onConfirm = {
+        onSaveAsPlaylist(it); showDialog =
+        false; context.showShortToast("Saved queue to $it")
+      },
+      onDismissRequest = { showDialog = false }
+    )
+  Scaffold(
+    modifier = modifier,
+    topBar = {
+      if (state !is QueueScreenState.Loaded) return@Scaffold
+      val queueItems = state.queue.items
+      val numberOfRemainingSongs = queueItems.size - state.currentSongIndex
+      val durationMillis = queueItems.subList(state.currentSongIndex, queueItems.size)
+        .sumOf { it.song.metadata.durationMillis }
+      QueueTopBar(
+        color = color,
+        numberOfSongsRemaining = numberOfRemainingSongs,
+        durationMillisRemaining = durationMillis,
+        onClose = onClose,
+        onSaveAsPlaylist = { showDialog = true }
+      )
+    },
+    floatingActionButton = {
+      AnimatedVisibility(
+        visible = fabShown,
+        enter = scaleIn() + fadeIn(),
+        exit = scaleOut() + fadeOut()
+      ) {
+        FloatingActionButton(onClick = onClearQueue) {
+          Icon(
+            imageVector = Icons.Rounded.PlaylistRemove,
+            contentDescription = "Clear Queue"
+          )
         }
+      }
+    },
+    containerColor = color
+  ) {
+
+    if (state !is QueueScreenState.Loaded) return@Scaffold
+
+    val reorderableList = remember(state.queue) {
+      ReorderableList(
+        mutableStateOf(state.queue.items.toMutableList()),
+        reorderSong
+      )
     }
+    val queueItems by reorderableList.items
+
+    val currentSongIndex = state.currentSongIndex
 
 
-    val context = LocalContext.current
+    val lazyListState = rememberLazyListState()
 
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
-    if (showDialog)
-        InputStringDialog(
-            title = "Playlist Name",
-            isInputValid = { it.isNotBlank() },
-            onConfirm = {
-                onSaveAsPlaylist(it); showDialog =
-                false; context.showShortToast("Saved queue to $it")
-            },
-            onDismissRequest = { showDialog = false }
-        )
-
-
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            if (state !is QueueScreenState.Loaded) return@Scaffold
-            val queueItems = state.queue.items
-            val numberOfRemainingSongs = queueItems.size - state.currentSongIndex
-            val durationMillis = queueItems.subList(state.currentSongIndex, queueItems.size)
-                .sumOf { it.song.metadata.durationMillis }
-            QueueTopBar(
-                color = color,
-                numberOfSongsRemaining = numberOfRemainingSongs,
-                durationMillisRemaining = durationMillis,
-                onClose = onClose,
-                onSaveAsPlaylist = { showDialog = true }
-            )
-        },
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = fabShown,
-                enter = scaleIn() + fadeIn(),
-                exit = scaleOut() + fadeOut()
-            ) {
-                FloatingActionButton(onClick = onClearQueue) {
-                    Icon(
-                        imageVector = Icons.Rounded.PlaylistRemove,
-                        contentDescription = "Clear Queue"
-                    )
-                }
-            }
-        },
-        containerColor = color
+    val reorderState = rememberReorderableLazyColumnState(
+      lazyListState = lazyListState,
+      onMove = { from, to -> reorderableList.reorder(from.index, to.index) }
+    )
+    LazyColumn(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(it)
+        .nestedScroll(nestedScrollConnection),
+      state = lazyListState
     ) {
+      itemsIndexed(queueItems, key = { _, item -> item.originalIndex }) { index, queueItem ->
+        ReorderableItem(
+          reorderableLazyListState = reorderState,
+          key = queueItem.originalIndex,
+        ) { isDragging ->
 
-        if (state !is QueueScreenState.Loaded) return@Scaffold
+          val disabledModifier = Modifier.alpha(0.5f)
 
-        val reorderableList = remember(state.queue) {
-            ReorderableList(
-                mutableStateOf(state.queue.items.toMutableList()),
-                reorderSong
-            )
+          val songModifier =
+            if (queueItem.originalIndex == state.currentSongId)
+              Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+            else if (index >= currentSongIndex)
+              Modifier
+                .fillMaxWidth()
+            else
+              Modifier
+                .fillMaxWidth()
+                .then(disabledModifier)
+
+          QueueSongRow(
+            modifier = songModifier
+              .clickable { onSongClicked(index) }
+              .zIndex(if (isDragging) 2.0f else 0.0f),
+            songUi = queueItem.song,
+            swipeToDeleteDelay = 100,
+            this@ReorderableItem,
+            onDragStarted = { reorderableList.onDragStarted(index) },
+            onDragStopped = { reorderableList.onDragStopped() },
+          ) {
+            onRemoveSongFromQueue(index)
+          }
         }
-        val queueItems by reorderableList.items
-
-        val currentSongIndex = state.currentSongIndex
-
-
-        val lazyListState = rememberLazyListState()
-
-        val reorderState = rememberReorderableLazyColumnState(
-            lazyListState = lazyListState,
-            onMove = { from, to -> reorderableList.reorder(from.index, to.index) }
-        )
-
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-                .nestedScroll(nestedScrollConnection),
-            state = lazyListState
-        ) {
-
-            itemsIndexed(queueItems, key = { _, item -> item.originalIndex }) { index, queueItem ->
-                ReorderableItem(
-                    reorderableLazyListState = reorderState,
-                    key = queueItem.originalIndex,
-                ) { isDragging ->
-
-                    val disabledModifier = Modifier.alpha(0.5f)
-
-                    val songModifier =
-                        if (queueItem.originalIndex == state.currentSongId)
-                            Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-                        else if (index >= currentSongIndex)
-                            Modifier
-                            .fillMaxWidth()
-                        else
-                            Modifier
-                            .fillMaxWidth()
-                            .then(disabledModifier)
-
-                    QueueSongRow(
-                        modifier = songModifier
-                            .clickable { onSongClicked(index) }
-                            .zIndex(if (isDragging) 2.0f else 0.0f),
-                        songUi = queueItem.song,
-                        swipeToDeleteDelay = 100,
-                        this@ReorderableItem,
-                        onDragStarted = { reorderableList.onDragStarted(index) },
-                        onDragStopped = { reorderableList.onDragStopped() },
-                    ) {
-                        onRemoveSongFromQueue(index)
-                    }
-
-                }
-            }
-        }
-
-        LaunchedEffect(key1 = Unit) {
-            if (currentSongIndex >= 0) {
-                lazyListState.scrollToItem(currentSongIndex, scrollOffset = -50)
-            }
-        }
-
+      }
     }
+
+    LaunchedEffect(key1 = Unit) {
+      if (currentSongIndex >= 0) {
+        lazyListState.scrollToItem(currentSongIndex, scrollOffset = -50)
+      }
+    }
+
+  }
 }

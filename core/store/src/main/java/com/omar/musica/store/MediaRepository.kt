@@ -123,7 +123,6 @@ class MediaRepository @Inject constructor(
           song.filePath.startsWith(folder)
         }
       }
-
       SongLibrary(filteredSongs)
     }.flowOn(Dispatchers.IO).stateIn(
       scope = scope,
@@ -198,7 +197,6 @@ class MediaRepository @Inject constructor(
           }
         }
       }
-
       results
     }
   }
